@@ -55,7 +55,8 @@ namespace tests
 
             //Act / Assert
             IPactVerifier pactVerifier = new PactVerifier(config);
-            pactVerifier.ProviderState($"{_pactServiceUri}/provider-states")
+            pactVerifier
+                .ProviderState($"{_pactServiceUri}/provider-states")
                 .ServiceProvider("pactflow-example-provider-dotnet", _providerUri)
                 .HonoursPactWith("pactflow-example-consumer-dotnet")
                 .PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
