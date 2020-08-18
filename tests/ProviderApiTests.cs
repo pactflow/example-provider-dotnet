@@ -49,7 +49,7 @@ namespace tests
                 // Output verbose verification logs to the test output
                 Verbose = true,
                 PublishVerificationResults = true,
-                ProviderVersion = "2.4.1-f3842db9e603d7",
+                ProviderVersion = System.Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
 
             };
 
