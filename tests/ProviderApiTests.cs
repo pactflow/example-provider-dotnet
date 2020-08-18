@@ -61,7 +61,7 @@ namespace tests
                 .HonoursPactWith("pactflow-example-consumer-dotnet")
                 .PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
                     uriOptions: new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")),
-                    consumerVersionTags: new List<string> { "master" })
+                    consumerVersionTags: new List<string> { "master", "prod" })
                 .Verify();
         }
 

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace Products.Controllers
 {
-    [Route("/products")]
     public class ProductsController : Controller
     {
         private IConfiguration _Configuration { get; }
@@ -18,9 +17,10 @@ namespace Products.Controllers
             this._Configuration = configuration;
         }
 
-        // GET api/provider?validDateTime=[DateTime String]
+        // GET /products
         [HttpGet]
-        public IActionResult Get()
+        [Route("/products")]
+        public IActionResult GetAll()
         {
             var products = new {
                 id = "666",
@@ -29,6 +29,20 @@ namespace Products.Controllers
             };
 
             return new JsonResult(new[] {products});
+        }
+
+        // GET /product/id
+        [HttpGet]
+        [Route("/product/{id?}")]
+        public IActionResult GetSingle(string? id)
+        {
+            var products = new {
+                id = "666",
+                name = "baguettes",
+                type = "food"
+            };
+
+            return new JsonResult(products);
         }
     }
 }
