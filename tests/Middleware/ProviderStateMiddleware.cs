@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Newtonsoft.Json;
+using Products;
 
 namespace tests.Middleware
 {
@@ -15,43 +16,34 @@ namespace tests.Middleware
         private const string ConsumerName = "Consumer";
         private readonly RequestDelegate _next;
         private readonly IDictionary<string, Action> _providerStates;
+        private ProductRepository _Repository;
 
         public ProviderStateMiddleware(RequestDelegate next)
         {
+            _Repository = ProductRepository.GetInstance();
             _next = next;
             _providerStates = new Dictionary<string, Action>
             {
                 {
-                    "There is no data",
-                    RemoveAllData
+                    "products exist",
+                    AddData
                 },
                 {
-                    "There is data",
-                    AddData
+                    "no products exist",
+                    RemoveAllData
                 }
             };
         }
 
         private void RemoveAllData()
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"../../../../../data");
-            var deletePath = Path.Combine(path, "somedata.txt");
-
-            if (File.Exists(deletePath))
-            {
-                File.Delete(deletePath);
-            }
+            _Repository.AddProduct(new Product("1", "food", "pancake"));
+            _Repository.AddProduct(new Product("2", "food", "sanwhich"));
         }
 
         private void AddData()
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"../../../../../data");
-            var writePath = Path.Combine(path, "somedata.txt");
-
-            if (!File.Exists(writePath))
-            {
-                File.Create(writePath);
-            }
+            _Repository.RemoveProducts();
         }
 
         public async Task Invoke(HttpContext context)
@@ -83,8 +75,7 @@ namespace tests.Middleware
                 var providerState = JsonConvert.DeserializeObject<ProviderState>(jsonRequestBody);
 
                 //A null or empty provider state key must be handled
-                if (providerState != null && !String.IsNullOrEmpty(providerState.State) &&
-                    providerState.Consumer == ConsumerName)
+                if (providerState != null && !String.IsNullOrEmpty(providerState.State))
                 {
                     _providerStates[providerState.State].Invoke();
                 }

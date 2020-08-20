@@ -11,38 +11,32 @@ namespace Products.Controllers
     public class ProductsController : Controller
     {
         private IConfiguration _Configuration { get; }
+        private ProductRepository _Repository;
+
+        // This would usually be from a Repository/Data Store
 
         public ProductsController(IConfiguration configuration)
         {
             this._Configuration = configuration;
+            this._Repository = Products.ProductRepository.GetInstance();
         }
 
-        // GET /products
         [HttpGet]
         [Route("/products")]
         public IActionResult GetAll()
         {
-            var products = new {
-                id = "666",
-                name = "baguettes",
-                type = "food"
-            };
-
-            return new JsonResult(new[] {products});
+            return new JsonResult(_Repository.GetProducts());
         }
 
-        // GET /product/id
         [HttpGet]
         [Route("/product/{id?}")]
-        public IActionResult GetSingle(string? id)
+        public IActionResult GetSingle(string id)
         {
-            var products = new {
-                id = "666",
-                name = "baguettes",
-                type = "food"
-            };
-
-            return new JsonResult(products);
+            var product = _Repository.GetProduct(id);
+            if (product != null) {
+                return new JsonResult(product);
+            }
+            return new NotFoundResult();
         }
     }
 }
