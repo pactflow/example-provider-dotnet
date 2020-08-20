@@ -53,16 +53,26 @@ namespace tests
 
             };
 
-            //Act / Assert
             IPactVerifier pactVerifier = new PactVerifier(config);
+            string pactUrl = System.Environment.GetEnvironmentVariable("PACT_URL");
             pactVerifier
                 .ProviderState($"{_pactServiceUri}/provider-states")
                 .ServiceProvider("pactflow-example-provider-dotnet", _providerUri)
-                .HonoursPactWith("pactflow-example-consumer-dotnet")
-                .PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
+                .HonoursPactWith("pactflow-example-consumer-dotnet");
+
+            if (pactUrl != "" && pactUrl != null) {
+                // Webhook path - verify the specific pact
+                pactVerifier.PactUri(pactUrl, new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")));
+            } else {
+                // Standard verification path - run the
+                pactVerifier.PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
                     uriOptions: new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")),
-                    consumerVersionTags: new List<string> { "master", "prod" })
-                .Verify();
+                    consumerVersionTags: new List<string> { "master", "prod" });
+            }
+
+            // Act / Assert
+            pactVerifier.Verify();
+
         }
 
         #region IDisposable Support
