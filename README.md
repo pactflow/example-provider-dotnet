@@ -44,13 +44,6 @@ export PACT_BROKER_TOKEN=<your pactflow read/write token here>
 export PACT_BROKER_BASE_URL=https://<your pactflow subdomain>.pactflow.io
 ```
 
-### Run tests
-
-```
-make restore
-make test
-```
-
 ### Simulating CI
 
 Usually, you would integrate this into a real CI system (such as Buildkite/Jenkins/CircleCI etc., or Travis as this repository is built against).
