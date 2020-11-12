@@ -37,8 +37,8 @@ namespace tests.Middleware
 
         private void RemoveAllData()
         {
-            _Repository.AddProduct(new Product("1", "food", "pancake"));
-            _Repository.AddProduct(new Product("2", "food", "sanwhich"));
+            _Repository.AddProduct(new Product("1", "food", "pancake", "1.0.0"));
+            _Repository.AddProduct(new Product("2", "food", "sanwhich", "1.0.0"));
         }
 
         private void AddData()
