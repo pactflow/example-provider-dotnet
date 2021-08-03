@@ -5,7 +5,7 @@ TRIGGER_PROVIDER_BUILD_URL := "https://api.travis-ci.com/repo/pactflow%2Fexample
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest"
 
 # Only deploy from master
-ifeq ($(GITHUB_REF),master)
+ifeq ($(GIT_BRANCH),master)
 	DEPLOY_TARGET=deploy
 else
 	DEPLOY_TARGET=no_deploy
@@ -37,18 +37,8 @@ stop: server.PID
 fake_ci: .env
 	CI=true \
 	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
-	GITHUB_REF=`git rev-parse --abbrev-ref HEAD` \
+	GIT_BRANCH=`git rev-parse --abbrev-ref HEAD` \
 	make ci
-
-ci_webhook: .env
-	npm run test:pact
-
-fake_ci_webhook:
-	CI=true \
-	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
-	GITHUB_REF=`git rev-parse --abbrev-ref HEAD` \
-	PACT_BROKER_PUBLISH_VERIFICATION_RESULTS=true \
-	make ci_webhook
 
 ## =====================
 ## Build/test tasks
@@ -106,7 +96,6 @@ create_or_update_pact_changed_webhook:
 
 test_pact_changed_webhook:
 	@curl -v -X POST ${PACT_BROKER_BASE_URL}/webhooks/${PACT_CHANGED_WEBHOOK_UUID}/execute -H "Authorization: Bearer ${PACT_BROKER_TOKEN}"
-
 
 ## ======================
 ## Misc
