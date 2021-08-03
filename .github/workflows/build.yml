@@ -25,4 +25,4 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
       - name: CI
-        run: make ci
+        run: GIT_BRANCH=${GITHUB_REF:11} make ci
