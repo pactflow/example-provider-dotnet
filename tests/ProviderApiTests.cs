@@ -49,7 +49,7 @@ namespace tests
                 // Output verbose verification logs to the test output
                 Verbose = true,
                 PublishVerificationResults = true,
-                ProviderVersion = System.Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
+                ProviderVersion = System.Environment.GetEnvironmentVariable("GIT_COMMIT")
 
             };
 

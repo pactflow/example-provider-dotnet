@@ -4,7 +4,7 @@ TRIGGER_PROVIDER_BUILD_URL := "https://api.travis-ci.com/repo/pactflow%2Fexample
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest"
 
 # Only deploy from master
-ifeq ($(TRAVIS_BRANCH),master)
+ifeq ($(GITHUB_REF),master)
 	DEPLOY_TARGET=deploy
 else
 	DEPLOY_TARGET=no_deploy
@@ -35,8 +35,8 @@ stop: server.PID
 # Use this for quick feedback when playing around with your workflows.
 fake_ci: .env
 	CI=true \
-	TRAVIS_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
-	TRAVIS_BRANCH=`git rev-parse --abbrev-ref HEAD` \
+	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
+	GITHUB_REF=`git rev-parse --abbrev-ref HEAD` \
 	make ci
 
 ci_webhook: .env
@@ -44,8 +44,8 @@ ci_webhook: .env
 
 fake_ci_webhook:
 	CI=true \
-	TRAVIS_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
-	TRAVIS_BRANCH=`git rev-parse --abbrev-ref HEAD` \
+	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
+	GITHUB_REF=`git rev-parse --abbrev-ref HEAD` \
 	PACT_BROKER_PUBLISH_VERIFICATION_RESULTS=true \
 	make ci_webhook
 
@@ -66,7 +66,7 @@ no_deploy:
 	@echo "Not deploying as not on master branch"
 
 can_i_deploy: .env
-	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${TRAVIS_COMMIT} --to prod
+	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to prod
 
 deploy_app:
 	@echo "Deploying to prod"
@@ -74,7 +74,7 @@ deploy_app:
 tag_as_prod:
 	@"${PACT_CLI}" broker create-version-tag \
 	  --pacticipant ${PACTICIPANT} \
-	  --version ${TRAVIS_COMMIT} \
+	  --version ${GIT_COMMIT} \
 	  --tag prod
 
 ## =====================
