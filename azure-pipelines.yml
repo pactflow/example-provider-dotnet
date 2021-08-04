@@ -1,0 +1,36 @@
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: 'Release'
+
+
+steps:
+- script: make ci
+  displayName: Run CI build
+  env:
+    PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
+    PACT_BROKER_TOKEN: jTDTQCuI43Z1JgQhnfe7Eg
+    PACT_BROKER_PUBLISH_VERIFICATION_RESULTS: true
+    GIT_COMMIT: $(Build.SourceVersion)
+    GIT_BRANCH: $(Build.SourceBranchName)
+# - script: dotnet restore src
+#   displayName: 📦  restore src
+# - script: dotnet restore tests
+#   displayName: 📦 restore tests
+# - script: dotnet run --project src &
+#   displayName: 🏁 start service
+# - script: dotnet test tests
+#   displayName: ✅ run tests
+# - script: |
+#     make can-i-deploy
+#   displayName: 🎉 can-i-deploy?
+
