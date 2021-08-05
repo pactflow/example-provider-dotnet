@@ -14,8 +14,17 @@ parameters:
   type: string
 
 steps:
-- script: make ci
-  displayName: Run CI build
+- script: |
+    dotnet restore src
+    dotnet restore tests
+  displayName: Restore
+- script: |
+    dotnet run --project src &
+  displayName: Start Provider
+- script: |
+    make can-i-deploy
+    make deploy
+  displayName: Deploy
   env:
     PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
     PACT_BROKER_TOKEN: ${{ parameters.token }}
