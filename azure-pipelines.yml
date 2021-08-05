@@ -17,13 +17,13 @@ steps:
 - script: |
     dotnet restore src
     dotnet restore tests
-  displayName: 📦 Restore
+  displayName: 📦  Restore
 - script: |
     dotnet run --project src &
-  displayName: 🏁 Start Provider
+  displayName: 🏁  Start Provider
 - script: |
     dotnet test tests
-  displayName: ✅ Test
+  displayName: ✅  Test
   env:
     PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
     PACT_BROKER_TOKEN: ${{ parameters.token }}
@@ -31,9 +31,34 @@ steps:
     GIT_COMMIT: $(Build.SourceVersion)
     GIT_BRANCH: $(Build.SourceBranchName)
 - script: |
-    make can_i_deploy
-    make deploy
-  displayName: 🚀 Deploy
+    docker run \
+      --rm \
+      -v ${PWD}:${PWD} \
+      -e PACT_BROKER_BASE_URL \
+      -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest \
+      broker can-i-deploy \
+        --pacticipant ${PACTICIPANT} \
+        --version ${GIT_COMMIT} \
+        --to prod
+    displayName: 🎛  Can I deploy?
+    env:
+      PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
+      PACT_BROKER_TOKEN: ${{ parameters.token }}
+      PACT_BROKER_PUBLISH_VERIFICATION_RESULTS: true
+      GIT_COMMIT: $(Build.SourceVersion)
+      GIT_BRANCH: $(Build.SourceBranchName)
+
+- script: |
+    docker run \
+      --rm \
+      -v ${PWD}:${PWD} \
+      -e PACT_BROKER_BASE_URL \
+      -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest \
+      broker create-version-tag \
+          --pacticipant ${PACTICIPANT} \
+          --version ${GIT_COMMIT} \
+          --tag prod
+  displayName: 🚀  Deploy
   env:
     PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
     PACT_BROKER_TOKEN: ${{ parameters.token }}
