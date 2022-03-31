@@ -26,10 +26,6 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
       - name: Test
         run: GIT_BRANCH=${GITHUB_REF:11} make run_tests
-      - name: Publish pacts
-        run: GIT_BRANCH=${GIT_REF:11} make publish_pacts
-        env:
-          PACT_PROVIDER: ${{ matrix.pact_provider }}
 
   # Runs on branches as well, so we know the status of our PRs
   can-i-deploy:
