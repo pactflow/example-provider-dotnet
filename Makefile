@@ -21,7 +21,7 @@ restore:
 	dotnet restore src
 	dotnet restore tests
 
-ci: restore start test stop can_i_deploy $(DEPLOY_TARGET)
+ci: run_tests can_i_deploy $(DEPLOY_TARGET)
 
 start: server.PID
 
@@ -46,6 +46,8 @@ fake_ci: .env
 
 test: .env
 	dotnet test tests
+
+run_tests: restore start test stop 
 
 ## =====================
 ## Deploy tasks
