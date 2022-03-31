@@ -40,6 +40,8 @@ fake_ci: .env
 	GIT_BRANCH=`git rev-parse --abbrev-ref HEAD` \
 	make ci
 
+ci_webhook: run_tests
+
 ## =====================
 ## Build/test tasks
 ## =====================
