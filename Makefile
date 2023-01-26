@@ -69,7 +69,7 @@ tag_as_prod:
 	  --tag prod
 
 ## =====================
-## Pactflow set up tasks
+## PactFlow set up tasks
 ## =====================
 
 # export the GITHUB_TOKEN environment variable before running this
