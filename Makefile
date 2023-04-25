@@ -28,6 +28,9 @@ ci: run_tests can_i_deploy $(DEPLOY_TARGET)
 
 start: server.PID
 
+wait: 
+	sleep 5
+
 server.PID:
 	{ dotnet run --project src & echo $$! > $@; }
 
@@ -52,7 +55,7 @@ ci_webhook: run_tests
 test: .env
 	dotnet test tests
 
-run_tests: restore start test stop 
+run_tests: restore start wait test stop 
 
 ## =====================
 ## Deploy tasks
