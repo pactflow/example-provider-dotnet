@@ -11,6 +11,11 @@ else
 	DEPLOY_TARGET=no_deploy
 endif
 
+# Only deploy from master
+ifeq ($(GITHUB_ACTIONS),true)
+	WAIT_TARGET=wait
+endif
+
 all: test
 
 ## ====================
@@ -21,9 +26,15 @@ restore:
 	dotnet restore src
 	dotnet restore tests
 
+run:
+	cd src && dotnet run
+
 ci: run_tests can_i_deploy $(DEPLOY_TARGET)
 
 start: server.PID
+
+wait: 
+	sleep 5
 
 server.PID:
 	{ dotnet run --project src & echo $$! > $@; }
@@ -49,28 +60,25 @@ ci_webhook: run_tests
 test: .env
 	dotnet test tests
 
-run_tests: restore start test stop 
+run_tests: restore start $(WAIT_TARGET) test stop 
 
 ## =====================
 ## Deploy tasks
 ## =====================
 
-deploy: deploy_app tag_as_prod
+deploy: deploy_app record_deployment
 
 no_deploy:
 	@echo "Not deploying as not on master branch"
 
 can_i_deploy: .env
-	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to prod
+	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to-environment production
 
 deploy_app:
-	@echo "Deploying to prod"
+	@echo "Deploying to production"
 
-tag_as_prod:
-	@"${PACT_CLI}" broker create-version-tag \
-	  --pacticipant ${PACTICIPANT} \
-	  --version ${GIT_COMMIT} \
-	  --tag prod
+record_deployment: .env
+	@"${PACT_CLI}" broker record_deployment --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --environment production
 
 ## =====================
 ## PactFlow set up tasks
