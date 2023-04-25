@@ -21,6 +21,9 @@ restore:
 	dotnet restore src
 	dotnet restore tests
 
+run:
+	cd src && dotnet run
+
 ci: run_tests can_i_deploy $(DEPLOY_TARGET)
 
 start: server.PID
