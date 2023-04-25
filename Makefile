@@ -11,6 +11,11 @@ else
 	DEPLOY_TARGET=no_deploy
 endif
 
+# Only deploy from master
+ifeq ($(GITHUB_ACTIONS),true)
+	WAIT_TARGET=wait
+endif
+
 all: test
 
 ## ====================
@@ -55,7 +60,7 @@ ci_webhook: run_tests
 test: .env
 	dotnet test tests
 
-run_tests: restore start wait test stop 
+run_tests: restore start $(WAIT_TARGET) test stop 
 
 ## =====================
 ## Deploy tasks
