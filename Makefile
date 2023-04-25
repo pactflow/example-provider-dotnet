@@ -50,6 +50,8 @@ ci_webhook: run_tests
 ## =====================
 
 test: .env
+	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
+	GIT_BRANCH=`git rev-parse --abbrev-ref HEAD` \
 	dotnet test tests
 
 run_tests: restore start test stop 

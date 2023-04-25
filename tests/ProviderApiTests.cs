@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using PactNet;
 using PactNet.Infrastructure.Outputters;
-using tests.XUnitHelpers;
+using PactNet.Output.Xunit;
+using PactNet.Verifier;
+using PactNet;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,44 +45,95 @@ namespace tests
                 // so a custom outputter is required.
                 Outputters = new List<IOutput>
                                 {
+                                    new XunitOutput(_outputHelper),
                                     new ConsoleOutput()
                                 },
 
                 // Output verbose verification logs to the test output
-                Verbose = true,
-                PublishVerificationResults = !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")) ? true : false,
-                ProviderVersion = System.Environment.GetEnvironmentVariable("GIT_COMMIT"),
+                LogLevel = PactLogLevel.Debug,
             };
 
             IPactVerifier pactVerifier = new PactVerifier(config);
             string pactUrl = System.Environment.GetEnvironmentVariable("PACT_URL");
-            pactVerifier
-                .ProviderState($"{_pactServiceUri}/provider-states")
-                .ServiceProvider("pactflow-example-provider-dotnet", _providerUri);
+            string pactFile = System.Environment.GetEnvironmentVariable("PACT_FILE");
+            string providerName = !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME"))
+                                    ? System.Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME")
+                                    : "pactflow-example-provider-dotnet";
+            string version = Environment.GetEnvironmentVariable("GIT_COMMIT");
+            string branch = Environment.GetEnvironmentVariable("GIT_BRANCH");
+            string buildUri = $"{Environment.GetEnvironmentVariable("GITHUB_SERVER_URL")}/{Environment.GetEnvironmentVariable("GITHUB_REPOSITORY")}/actions/runs/{Environment.GetEnvironmentVariable("GITHUB_RUN_ID")}";
 
-            if (pactUrl != "" && pactUrl != null)
+
+            if (pactFile != "" && pactFile != null)
+            // Verify a local file, provided by PACT_FILE, verification results are never published
+            // This step does not require a Pact Broker
             {
-                // Webhook path - verify the specific pact
-                pactVerifier.PactUri(pactUrl, !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) ? 
-                                        new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) : 
-                                            !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")) ?
-                                                new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), 
-                                                    System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD")) : null);
+
+                pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
+                .WithFileSource(new FileInfo(pactUrl))
+                .WithProviderStateUrl(new Uri($"{_pactServiceUri}/provider-states"))
+                .Verify();
+            }
+            else if (pactUrl != "" && pactUrl != null)
+            // Verify a remote file fetched from a pact broker, provided by PACT_URL, verification results may be published
+            // This step requires a Pact Broker
+            {
+                pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
+                .WithUriSource(new Uri(pactUrl), options =>
+                {
+                    if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
+                    {
+                        options.TokenAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
+                    }
+                    else if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
+                    {
+                        options.BasicAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
+                    }
+                    options.PublishResults(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
+                        {
+                            results.ProviderBranch(branch)
+                            .BuildUri(new Uri(buildUri));
+                        });
+                })
+                .WithProviderStateUrl(new Uri($"{_pactServiceUri}/provider-states"))
+                .Verify();
             }
             else
             {
-                // Standard verification path - run the
-                pactVerifier.PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
-                    uriOptions: !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) ? 
-                                        new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) : 
-                                            !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")) ?
-                                                new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), 
-                                                    System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD")) : null,
-                    consumerVersionTags: new List<string> { "master", "prod" });
+                // Verify remote pacts, provided by querying the Pact Broker via consumer version selectors, verification results may be published
+                // This step requires a Pact Broker
+                pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
+                    .WithPactBrokerSource(new Uri(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL")), options =>
+                    {
+                        options.ConsumerVersionSelectors(
+                                    new ConsumerVersionSelector { DeployedOrReleased = true },
+                                    new ConsumerVersionSelector { MainBranch = true }
+                                )
+                                .ProviderBranch(branch)
+                                .PublishResults(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
+                                {
+                                    results.ProviderBranch(branch)
+                                   .BuildUri(new Uri(buildUri));
+                                })
+                                .EnablePending()
+                                .IncludeWipPactsSince(new DateTime(2022, 1, 1));
+                        // Conditionally set authentication depending on if you are using an Pact Broker / PactFlow Broker
+                        // You may not have credentials with your own broker.
+                        if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
+                        {
+                            options.TokenAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
+                        }
+                        else if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
+                        {
+                            options.BasicAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
+                        }
+
+                    })
+                    .WithProviderStateUrl(new Uri($"{_pactServiceUri}/provider-states"))
+                    .Verify();
             }
 
-            // Act / Assert
-            pactVerifier.Verify();
+
 
         }
 
