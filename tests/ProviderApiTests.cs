@@ -48,9 +48,8 @@ namespace tests
 
                 // Output verbose verification logs to the test output
                 Verbose = true,
-                PublishVerificationResults = true,
-                ProviderVersion = System.Environment.GetEnvironmentVariable("GIT_COMMIT")
-
+                PublishVerificationResults = !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")) ? true : false,
+                ProviderVersion = System.Environment.GetEnvironmentVariable("GIT_COMMIT"),
             };
 
             IPactVerifier pactVerifier = new PactVerifier(config);
@@ -59,13 +58,24 @@ namespace tests
                 .ProviderState($"{_pactServiceUri}/provider-states")
                 .ServiceProvider("pactflow-example-provider-dotnet", _providerUri);
 
-            if (pactUrl != "" && pactUrl != null) {
+            if (pactUrl != "" && pactUrl != null)
+            {
                 // Webhook path - verify the specific pact
-                pactVerifier.PactUri(pactUrl, new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")));
-            } else {
+                pactVerifier.PactUri(pactUrl, !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) ? 
+                                        new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) : 
+                                            !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")) ?
+                                                new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), 
+                                                    System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD")) : null);
+            }
+            else
+            {
                 // Standard verification path - run the
                 pactVerifier.PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
-                    uriOptions: new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")),
+                    uriOptions: !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) ? 
+                                        new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")) : 
+                                            !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")) ?
+                                                new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), 
+                                                    System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD")) : null,
                     consumerVersionTags: new List<string> { "master", "prod" });
             }
 
