@@ -2,3 +2,4 @@
 bin/
 obj/
 *.PID
+.DS_Store
