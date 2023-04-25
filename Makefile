@@ -60,22 +60,19 @@ run_tests: restore start test stop
 ## Deploy tasks
 ## =====================
 
-deploy: deploy_app tag_as_prod
+deploy: deploy_app record_deployment
 
 no_deploy:
 	@echo "Not deploying as not on master branch"
 
 can_i_deploy: .env
-	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to prod
+	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to-environment prod
 
 deploy_app:
 	@echo "Deploying to prod"
 
-tag_as_prod:
-	@"${PACT_CLI}" broker create-version-tag \
-	  --pacticipant ${PACTICIPANT} \
-	  --version ${GIT_COMMIT} \
-	  --tag prod
+record_deployment: .env
+	@"${PACT_CLI}" broker record_deployment --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --environment production
 
 ## =====================
 ## PactFlow set up tasks
