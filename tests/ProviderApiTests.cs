@@ -107,7 +107,8 @@ namespace tests
                     {
                         options.ConsumerVersionSelectors(
                                     new ConsumerVersionSelector { DeployedOrReleased = true },
-                                    new ConsumerVersionSelector { MainBranch = true }
+                                    new ConsumerVersionSelector { MainBranch = true },
+                                    new ConsumerVersionSelector { MatchingBranch = true }
                                 )
                                 .ProviderBranch(branch)
                                 .PublishResults(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
