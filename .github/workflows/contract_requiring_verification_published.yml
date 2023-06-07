@@ -14,7 +14,7 @@ on:
         required: true
 
 env:
-  PACT_BROKER_BASE_URL: https://test.pactflow.io
+  PACT_BROKER_BASE_URL: https://acc.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACTFLOW_TOKEN_FOR_CI_CD_WORKSHOP }}
   PACT_BROKER_PUBLISH_VERIFICATION_RESULTS: true
   PACT_URL: ${{ github.event.client_payload.pact_url }}
@@ -34,11 +34,11 @@ jobs:
         if: ${{ github.event.client_payload.pact_url }}
         with:
           ref: ${{env.GIT_COMMIT}}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-dotnet@v1.7.2
         with:
-          node-version: '16'
+           dotnet-version: '3.1.x'
       - run: docker pull pactfoundation/pact-cli:latest
-      - name: Install
-        run: npm i
+      - name: Build
+        run: GIT_BRANCH=${GITHUB_REF:11} make ci_webhook
       - name: ${{env.DESCRIPTION}}
         run: make ci_webhook
