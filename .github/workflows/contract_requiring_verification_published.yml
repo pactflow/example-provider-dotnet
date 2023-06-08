@@ -21,4 +21,22 @@ env:
   DESCRIPTION: ${{ github.event.client_payload.message }}
   
 jobs:
-  
+  verify-contract-requiring-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout default branch if user manually provides pact URL
+        uses: actions/checkout@v3
+        if: ${{ github.event.inputs.PACT_URL }}
+      - name: checkout specific SHA if webhook providers pact URL
+        uses: actions/checkout@v3
+        if: ${{ github.event.client_payload.pact_url }}
+        with:
+          ref: ${{env.GIT_COMMIT}}
+      - uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: '3.1.x'
+      - run: docker pull pactfoundation/pact-cli:latest
+      - name: Install
+        run: npm i
+      - name: ${{env.DESCRIPTION}}
+        run: make ci_webhook
