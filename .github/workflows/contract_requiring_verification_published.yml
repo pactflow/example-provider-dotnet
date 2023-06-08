@@ -34,7 +34,7 @@ jobs:
           ref: ${{env.GIT_COMMIT}}
       - uses: actions/setup-dotnet@v1.7.2
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: '6.0.x'
       - run: docker pull pactfoundation/pact-cli:latest
       - name: ${{env.DESCRIPTION}}
         run: make ci_webhook
