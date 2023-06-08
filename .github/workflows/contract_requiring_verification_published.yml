@@ -36,7 +36,5 @@ jobs:
         with:
           dotnet-version: '3.1.x'
       - run: docker pull pactfoundation/pact-cli:latest
-      - name: Install
-        run: npm i
       - name: ${{env.DESCRIPTION}}
         run: make ci_webhook
