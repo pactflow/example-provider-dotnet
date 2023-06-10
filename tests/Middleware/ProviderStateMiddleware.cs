@@ -34,7 +34,7 @@ namespace tests.Middleware
                 },
                 {
                     "products id exist",
-                    AddData
+                    GetProductById
                 }
             };
         }
