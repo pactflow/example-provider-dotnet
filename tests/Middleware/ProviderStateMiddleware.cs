@@ -34,7 +34,7 @@ namespace tests.Middleware
                 },
                 {
                     "products id does not exist",
-                    GetProductById
+                    GetProductById 
                 }
             };
         }
