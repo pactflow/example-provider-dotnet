@@ -39,6 +39,7 @@ namespace tests.Middleware
         {
             _Repository.AddProduct(new Product("1", "food", "pancake", "1.0.0"));
             _Repository.AddProduct(new Product("2", "food", "sanwhich", "1.0.0"));
+            _Repository.AddProduct(new Product("27", "food", "burger", "1.0.0"));
         }
 
         private void AddData()
