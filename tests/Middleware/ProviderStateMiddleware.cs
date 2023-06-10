@@ -33,8 +33,8 @@ namespace tests.Middleware
                     RemoveAllData
                 },
                 {
-                    "product id 27 exist",
-                    GetProductById
+                    "product id exist",
+                    AddData
                 }
             };
         }
