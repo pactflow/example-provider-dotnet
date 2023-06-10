@@ -31,6 +31,10 @@ namespace tests.Middleware
                 {
                     "no products exist",
                     RemoveAllData
+                },
+                {
+                    "product id 27 exist",
+                    GetProductById
                 }
             };
         }
@@ -45,6 +49,11 @@ namespace tests.Middleware
         private void AddData()
         {
             _Repository.RemoveProducts();
+        }
+        
+        private void GetProductById()
+        {
+            _Repository.GetProduct(27);
         }
 
         public async Task Invoke(HttpContext context)
