@@ -53,7 +53,7 @@ namespace tests.Middleware
         
         private void GetProductById()
         {
-            _Repository.GetProduct("2");
+            _Repository.GetProduct("10");
         }
 
         public async Task Invoke(HttpContext context)
