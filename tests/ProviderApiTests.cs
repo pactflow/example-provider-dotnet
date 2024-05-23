@@ -139,20 +139,22 @@ public class ProviderApiTests : IDisposable
     }
 
     #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
+
+    private bool _disposed = false; // To detect redundant calls
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        if (_disposed)
         {
-            if (disposing)
-            {
-                _webHost.StopAsync().GetAwaiter().GetResult();
-                _webHost.Dispose();
-            }
-
-            disposedValue = true;
+            return;
         }
+
+        if (disposing)
+        {
+            _webHost.Dispose();
+        }
+
+        _disposed = true;
     }
 
     // This code added to correctly implement the disposable pattern.
@@ -163,5 +165,6 @@ public class ProviderApiTests : IDisposable
 
         GC.SuppressFinalize(this);
     }
+
     #endregion
 }
