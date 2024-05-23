@@ -6,37 +6,36 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
-namespace Products.Controllers
+namespace Products.Controllers;
+
+public class ProductsController : Controller
 {
-    public class ProductsController : Controller
+    private IConfiguration _Configuration { get; }
+    private ProductRepository _Repository;
+
+    // This would usually be from a Repository/Data Store
+
+    public ProductsController(IConfiguration configuration)
     {
-        private IConfiguration _Configuration { get; }
-        private ProductRepository _Repository;
+        this._Configuration = configuration;
+        this._Repository = Products.ProductRepository.GetInstance();
+    }
 
-        // This would usually be from a Repository/Data Store
+    [HttpGet]
+    [Route("/products")]
+    public IActionResult GetAll()
+    {
+        return new JsonResult(_Repository.GetProducts());
+    }
 
-        public ProductsController(IConfiguration configuration)
-        {
-            this._Configuration = configuration;
-            this._Repository = Products.ProductRepository.GetInstance();
+    [HttpGet]
+    [Route("/product/{id?}")]
+    public IActionResult GetSingle(string id)
+    {
+        var product = _Repository.GetProduct(id);
+        if (product != null) {
+            return new JsonResult(product);
         }
-
-        [HttpGet]
-        [Route("/products")]
-        public IActionResult GetAll()
-        {
-            return new JsonResult(_Repository.GetProducts());
-        }
-
-        [HttpGet]
-        [Route("/product/{id?}")]
-        public IActionResult GetSingle(string id)
-        {
-            var product = _Repository.GetProduct(id);
-            if (product != null) {
-                return new JsonResult(product);
-            }
-            return new NotFoundResult();
-        }
+        return new NotFoundResult();
     }
 }
