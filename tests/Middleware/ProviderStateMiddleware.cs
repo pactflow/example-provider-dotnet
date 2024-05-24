@@ -35,13 +35,13 @@ public class ProviderStateMiddleware
         };
     }
 
-    private void RemoveAllData()
+    private void AddData()
     {
         _Repository.AddProduct(new Product("1", "food", "pancake", "1.0.0"));
         _Repository.AddProduct(new Product("2", "food", "sanwhich", "1.0.0"));
     }
 
-    private void AddData()
+    private void RemoveAllData()
     {
         _Repository.RemoveProducts();
     }
