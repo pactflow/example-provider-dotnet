@@ -17,11 +17,11 @@ jobs:
   verify-changed-pact:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v1.7.2
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: '8.0.x'
       - run: docker pull pactfoundation/pact-cli:latest
       - name: Build
         run: GIT_BRANCH=${GITHUB_REF:11} make ci_webhook

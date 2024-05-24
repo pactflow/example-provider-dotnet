@@ -1,8 +1,7 @@
-namespace tests.Middleware
+namespace tests.Middleware;
+
+public class ProviderState
 {
-    public class ProviderState
-    {
-        public string Consumer { get; set; }
-        public string State { get; set; }
-    }
+    public string Consumer { get; set; }
+    public string State { get; set; }
 }
