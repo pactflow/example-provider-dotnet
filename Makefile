@@ -1,5 +1,5 @@
 PACTICIPANT := "pactflow-example-provider-dotnet"
-GITHUB_REPO := "pactflow/pactflow-example-provider-dotnet"
+GITHUB_REPO := "pactflow/example-provider-dotnet"
 CONTRACT_REQUIRING_VERIFICATION_PUBLISHED_WEBHOOK_UUID := "46ed3f10-d03f-43cd-b945-ce45ff42d324"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest"
 

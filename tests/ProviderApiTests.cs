@@ -53,12 +53,12 @@ public class ProviderApiTests : IDisposable
             LogLevel = PactLogLevel.Debug,
         };
 
-        IPactVerifier pactVerifier = new PactVerifier(config);
-        string pactUrl = System.Environment.GetEnvironmentVariable("PACT_URL");
-        string pactFile = System.Environment.GetEnvironmentVariable("PACT_FILE");
-        string providerName = !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME"))
-                                ? System.Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME")
+        string providerName = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME"))
+                                ? Environment.GetEnvironmentVariable("PACT_PROVIDER_NAME")
                                 : "pactflow-example-provider-dotnet";
+        IPactVerifier pactVerifier = new PactVerifier(providerName, config);
+        string pactUrl = Environment.GetEnvironmentVariable("PACT_URL");
+        string pactFile = Environment.GetEnvironmentVariable("PACT_FILE");
         string version = Environment.GetEnvironmentVariable("GIT_COMMIT");
         string branch = Environment.GetEnvironmentVariable("GIT_BRANCH");
         string buildUri = $"{Environment.GetEnvironmentVariable("GITHUB_SERVER_URL")}/{Environment.GetEnvironmentVariable("GITHUB_REPOSITORY")}/actions/runs/{Environment.GetEnvironmentVariable("GITHUB_RUN_ID")}";
@@ -69,7 +69,7 @@ public class ProviderApiTests : IDisposable
         // This step does not require a Pact Broker
         {
 
-            pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
+            pactVerifier.WithHttpEndpoint(new Uri(_providerUri))
             .WithFileSource(new FileInfo(pactUrl))
             .WithProviderStateUrl(new Uri($"{_pactServiceUri}/provider-states"))
             .Verify();
@@ -78,18 +78,18 @@ public class ProviderApiTests : IDisposable
         // Verify a remote file fetched from a pact broker, provided by PACT_URL, verification results may be published
         // This step requires a Pact Broker
         {
-            pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
+            pactVerifier.WithHttpEndpoint(new Uri(_providerUri))
             .WithUriSource(new Uri(pactUrl), options =>
             {
-                if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
                 {
-                    options.TokenAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
+                    options.TokenAuthentication(Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
                 }
-                else if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
+                else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
                 {
-                    options.BasicAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
+                    options.BasicAuthentication(Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
                 }
-                options.PublishResults(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
+                options.PublishResults(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
                     {
                         results.ProviderBranch(branch)
                         .BuildUri(new Uri(buildUri));
@@ -102,8 +102,12 @@ public class ProviderApiTests : IDisposable
         {
             // Verify remote pacts, provided by querying the Pact Broker via consumer version selectors, verification results may be published
             // This step requires a Pact Broker
-            pactVerifier.ServiceProvider(providerName, new Uri(_providerUri))
-                .WithPactBrokerSource(new Uri(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL")), options =>
+            if (Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL") == null){
+                throw new InvalidOperationException("PACT_BROKER_BASE_URL environment variable is not set.");
+            }
+
+            pactVerifier.WithHttpEndpoint(new Uri(_providerUri))
+                .WithPactBrokerSource(new Uri(Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL")), options =>
                 {
                     options.ConsumerVersionSelectors(
                                 new ConsumerVersionSelector { DeployedOrReleased = true },
@@ -111,7 +115,7 @@ public class ProviderApiTests : IDisposable
                                 new ConsumerVersionSelector { MatchingBranch = true }
                             )
                             .ProviderBranch(branch)
-                            .PublishResults(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
+                            .PublishResults(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_PUBLISH_VERIFICATION_RESULTS")), version, results =>
                             {
                                 results.ProviderBranch(branch)
                                .BuildUri(new Uri(buildUri));
@@ -120,13 +124,13 @@ public class ProviderApiTests : IDisposable
                             .IncludeWipPactsSince(new DateTime(2022, 1, 1));
                     // Conditionally set authentication depending on if you are using an Pact Broker / PactFlow Broker
                     // You may not have credentials with your own broker.
-                    if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
+                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")))
                     {
-                        options.TokenAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
+                        options.TokenAuthentication(Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN"));
                     }
-                    else if (!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
+                    else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME")))
                     {
-                        options.BasicAuthentication(System.Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), System.Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
+                        options.BasicAuthentication(Environment.GetEnvironmentVariable("PACT_BROKER_USERNAME"), Environment.GetEnvironmentVariable("PACT_BROKER_PASSWORD"));
                     }
 
                 })
