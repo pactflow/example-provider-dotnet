@@ -17,9 +17,9 @@ jobs:
   verify-changed-pact:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Setup .NET SDK 8.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4
         with:
           dotnet-version: '8.0.x'
       - run: docker pull pactfoundation/pact-cli:latest
