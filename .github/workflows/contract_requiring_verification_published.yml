@@ -34,10 +34,10 @@ jobs:
         if: ${{ github.event.client_payload.pact_url }}
         with:
           ref: ${{env.GIT_COMMIT}}
-      - name: Setup .NET SDK 8.0.x
+      - name: Setup .NET SDK 10.0.x
         uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       - run: docker pull pactfoundation/pact-cli:latest
       - name: ${{env.DESCRIPTION}}
         run: make ci_webhook
